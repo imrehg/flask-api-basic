@@ -3,6 +3,12 @@ from flask import jsonify, request
 
 app = flask.Flask(__name__)
 
+items = {
+    "fork": "silver",
+    "tooth": "wooden",
+    "couch": "comfy",
+}
+
 
 @app.route("/", methods=["GET"])
 def main():
@@ -10,42 +16,39 @@ def main():
     return "HelloWorld", 200
 
 
+@app.route("/items", methods=["GET"])
+def all_items():
+    """Querying all the items we have in store."""
+    return jsonify(sorted(list(items.keys())))
+
+
 @app.route("/item/<item>", methods=["GET"])
-def echo_items(item):
-    """Returns the same item as requested,
-    as well as a any possible query string
-    """
-    result = {"item": item, "query": {}}
-    for key in request.args.keys():
-        result["query"][key] = request.args.get(key)
-    return jsonify(result)
-
-
-@app.route("/square", methods=["POST"])
-def squaring():
-    """Square a number received through the 'number'
-    parameter of the post data
-    """
-    if request.is_json:
-        number = request.json.get("number")
+def query_item(item):
+    """Query a single item"""
+    if item in items:
+        result = {"item": item, "kind": items[item]}
+        if "verbose" in request.args.keys():
+            result["verbose"] = f"This is our {items[item]} {item}!"
+        return jsonify(result)
     else:
-        number = request.form.get("number")
+        result = {"message": f"No record of this item: {item}"}
+        return jsonify(result), 404
 
-    if number is None:
-        # There wasn't a 'number' supplied
-        return "Missing 'number' parameter", 400
 
-    try:
-        # Cast to floating point to handle as many types of input as possible
-        fnumber = float(number)
-    except ValueError:
-        return f"Provided 'number' parameter is not a number: {number}", 400
-
-    result = fnumber * fnumber
-    if request.is_json:
-        return jsonify({"square": result})
+@app.route("/item", methods=["POST"])
+def create_item():
+    """Creating a new item"""
+    params = request.json if request.is_json else request.form
+    item_name = params.get("item")
+    kind_value = params.get("kind")
+    if item_name is not None and kind_value is not None:
+        if item_name not in items:
+            items[item_name] = kind_value
+            return f"Created {item_name} of {kind_value} kind", 201
+        else:
+            return f"Can't create item, as {item_name} already exists", 409
     else:
-        return f"square={result}"
+        return "Please submit both 'item' and 'kind' parameters!", 400
 
 
 if __name__ == "__main__":

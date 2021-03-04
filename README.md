@@ -24,42 +24,84 @@ HelloWorld
 
 ## Items
 
-Playing with `GET` and query strings. Simple `GET` on `/item/<item>`
+Playing with `GET` and query strings. A simple `GET` on `/items` to get all
+items back:
 
 ```shell
+$ curl "localhost:8000/items"
+[
+  "couch",
+  "fork",
+  "tooth"
+]
+```
+
+To query a single item, issue a simple `GET` on `/item/<item>`
+
+```shell
+$ curl "localhost:8000/item/tooth"
+{
+  "item": "tooth",
+  "kind": "wooden"
+}
+```
+
+or modify the request with a query string parameter `verbose`:
+
+```shell
+curl "localhost:8000/item/tooth?verbose"
+{
+  "item": "tooth",
+  "kind": "wooden",
+  "verbose": "This is our wooden tooth!"
+}
+```
+
+To add new items, use `POST` request on the `/item` endpoint,
+including `item` and `kind` as a form data or JSON. As form data:
+
+```shell
+$ curl -XPOST -d 'item=spoon&kind=coffee' localhost:8000/item
+Created spoon of coffee kind
+
 $ curl "localhost:8000/item/spoon"
 {
   "item": "spoon",
-  "query": {}
+  "kind": "coffee"
 }
 ```
 
-or include some query strings as well:
+As JSON:
 
 ```shell
-$ curl "localhost:8000/item/fork?fancy=yes"
+$ curl -XPOST -H 'Content-type: application/json' -d '{"item": "castle", "kind": "bouncy"}' localhost:8000/item
+Created castle of bouncy kind%
+
+$ curl "localhost:8000/item/castle?verbose"
 {
-  "item": "fork",
-  "query": {
-    "fancy": "yes"
-  }
+  "item": "castle",
+  "kind": "bouncy",
+  "verbose": "This is our bouncy castle!"
 }
 ```
 
-## Squaring
-
-Playing with `POST` in either as form data:
+Items cannot be overwritten after they are set:
 
 ```shell
-$ curl -XPOST -d 'number=41&test=123' localhost:8000/square
-square=1681.0
+$ curl -XPOST -d 'item=chocolate&kind=hot' localhost:8000/item
+Created chocolate of hot kind
+
+$ curl -XPOST -d 'item=chocolate&kind=hot' localhost:8000/item
+Can't create item, as chocolate already exists
 ```
 
-or JSON request:
-
+Also getting a 404 status with a message if the item is not known:
 ```shell
-$ curl -XPOST -H "Content-Type: application/json" -d '{"number":14}' localhost:8000/square
+$ curl "localhost:8000/item/mirage"
 {
-  "square": 196.0
+  "message": "No record of this item: mirage"
 }
 ```
+
+The server stores the items in memory, so it will always be going back to the
+same basic items that we have set by default when the server restarts.
