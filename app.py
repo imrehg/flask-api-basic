@@ -27,7 +27,7 @@ def query_item(item):
     """Query a single item"""
     if item in items:
         result = {"item": item, "kind": items[item]}
-        if "verbose" in request.args.keys():
+        if request.args.get("format") == "full":
             result["verbose"] = f"This is our {items[item]} {item}!"
         return jsonify(result)
     else:

@@ -46,10 +46,10 @@ $ curl "localhost:8000/item/tooth"
 }
 ```
 
-or modify the request with a query string parameter `verbose`:
+or modify the request with a query string parameter `format=full`:
 
 ```shell
-curl "localhost:8000/item/tooth?verbose"
+curl "localhost:8000/item/tooth?format=full"
 {
   "item": "tooth",
   "kind": "wooden",
