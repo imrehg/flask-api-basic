@@ -5,7 +5,7 @@ A tiny Flask API to experiment with.
 Install `flask`, and the run it, for example as:
 
 ```shell
-FLASK_ENV=development flask run -h localhost -p 80000
+FLASK_ENV=development flask run -h localhost -p 8000
 ```
 
 this will run `app.py` in development mode, and restart
